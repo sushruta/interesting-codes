@@ -60,3 +60,7 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+#C++ stuff as well
+*.o
+*/a.out

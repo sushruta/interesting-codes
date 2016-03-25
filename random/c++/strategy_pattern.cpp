@@ -3,16 +3,16 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <cmath>
 
 class Sequence {
   public:
     virtual std::string whatAmI() = 0;
-  private:
 };
 
 template<typename T>
 class FibonacciSequence :
-  public Sequence,
+  public Sequence<T>,
   public std::iterator<std::bidirectional_iterator_tag, const T> {
   public:
     std::string whatAmI() {
@@ -81,6 +81,7 @@ class PowerSequence :
 
       return *this;
     }
+
   private:
     T curr;
 };
@@ -117,6 +118,7 @@ class GeometricSequence :
 
       return *this;
     }
+
   private:
     T curr;
     T ratio;
@@ -130,6 +132,9 @@ class Context {
     }
     std::string description() {
       return sequence->whatAmI();
+    }
+    Sequence* getSequence() {
+      return sequence;
     }
   private:
     Sequence *sequence;
@@ -151,8 +156,10 @@ int main() {
     context.setSequence(sequences[i]);
     std::cout << context.description() << std::endl;
 
+    Sequence *seq = context.getSequence();
     for (int i=0; i<10; i++) {
-      std::cout << *(context.getIterator()) << " ";
+      std::cout << *seq << " ";
+      ++seq;
     }
     std::cout << std::endl;
   }
