@@ -6,6 +6,8 @@ Image segmentation is the process of dividing image into `semantically` similar 
 
 Shamelessly took a snapshot of the beautifully typesetted algorithm
 
+
+
 Here,
 
 
