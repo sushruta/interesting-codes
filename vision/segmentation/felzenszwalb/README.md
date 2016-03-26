@@ -6,8 +6,8 @@ Image segmentation is the process of dividing image into `semantically` similar 
 
 Shamelessly took a snapshot of the beautifully typesetted algorithm
 
-
+![felzetall algorithm](https://cloud.githubusercontent.com/assets/8848349/14061757/d7a59cc0-f35e-11e5-8671-cf0ec95d88eb.png)
 
 Here,
 
-
+![mint definition](https://cloud.githubusercontent.com/assets/8848349/14061761/e6e187da-f35e-11e5-8982-9dbea05fd1ae.png)
