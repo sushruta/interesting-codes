@@ -1,47 +1,74 @@
+import cython
+cimport cython
+
 import numpy as np
 cimport numpy as np
 
-DTYPE = np.float
-ctypedef np.float_t DTYPE_t
+DTYPE = np.double
+ctypedef np.double_t DTYPE_t
 
 ####
-# The code currently runs at ~200ms
+# The code currently runs at ~6ms
 # for a 512x512 image. There is still
 # some room for improvement. It's extremely
 # to make this function as fast as possible
 #
 ####
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
 def get_edges(np.ndarray[DTYPE_t, ndim=2] img):
-  cdef int height = img.shape[0]
-  cdef int width = img.shape[1]
-  cdef int h, w, pixel
-  cdef DTYPE_t val
+  cdef unsigned int height = np.shape(img)[0]
+  cdef unsigned int width = np.shape(img)[1]
+  cdef unsigned int h, w
+  cdef unsigned int cnt = 0
 
-  edges = []
+  h = height
+  w = width
 
-  cdef np.ndarray img_pad = np.pad(img, (1, 1), 'constant', constant_values=0)
+  cdef unsigned int totalrows = 2*(h-1)*(w-1) + (h-1)*width + height*(w-1)
 
-  cdef np.ndarray diff1 = np.abs(img_pad[1:-1, 1:-1] - img_pad[2:, 2:])
-  cdef np.ndarray diff2 = np.abs(img_pad[1:-1, 1:-1] - img_pad[2:, 1:-1])
-  cdef np.ndarray diff3 = np.abs(img_pad[1:-1, 1:-1] - img_pad[1:-1:, 2:])
+  cdef np.ndarray[DTYPE_t, ndim=1] edge = np.zeros(3, dtype=DTYPE)
+  cdef np.ndarray[DTYPE_t, ndim=2] edges = np.zeros((totalrows, 3), dtype=DTYPE)
 
-  height = diff1.shape[0]
-  width = diff1.shape[1]
+  cdef np.ndarray[DTYPE_t, ndim=2] diff1 = np.abs(img[:-1, :-1] - img[1:, 1:], dtype=DTYPE)
+  cdef np.ndarray[DTYPE_t, ndim=2] diff2 = np.abs(img[:, :-1] - img[:, 1:], dtype=DTYPE)
+  cdef np.ndarray[DTYPE_t, ndim=2] diff3 = np.abs(img[:-1, :] - img[1:, :], dtype=DTYPE)
+  cdef np.ndarray[DTYPE_t, ndim=2] diff4 = np.abs(img[1:, :-1] - img[:-1, 1:], dtype=DTYPE)
+
+  cdef double[:, :] diff1_view = diff1
+  cdef double[:, :] diff2_view = diff2
+  cdef double[:, :] diff3_view = diff3
+  cdef double[:, :] diff4_view = diff3
+
+  cdef double[:] edge_view = edge
+  cdef double[:, :] edges_view = edges
+
   for h in xrange(height):
     for w in xrange(width):
-      val = diff1[h, w]
-      edges.append((val, h*width+w, (h+1)*width+(w+1)))
-  
-  height = diff2.shape[0]
-  width = diff2.shape[1]
-  for h in xrange(height):
-    for w in xrange(width):
-      val = diff2[h, w]
-      edges.append((val, h*width+w, h*width+w+1))
+      if h < h-1 and w < w-1:
+        edge_view[0] = diff1_view[h, w]
+        edge_view[1] = h*width+w
+        edge_view[2] = (h+1)*width+(w+1)
+        edges_view[cnt] = edge_view
+        cnt = cnt + 1
+      if h < h-1:
+        edge_view[0] = diff3_view[h, w]
+        edge_view[1] = h*width+w
+        edge_view[2] = (h+1)*width+w
+        edges_view[cnt] = edge_view
+        cnt = cnt + 1
+      if w < w-1:
+        edge_view[0] = diff2_view[h, w]
+        edge_view[1] = h*width+w
+        edge_view[2] = h*width+(w+1)
+        edges_view[cnt] = edge_view
+        cnt = cnt + 1
+      if h > 0 and w < w-1:
+        edge_view[0] = diff4_view[h, w]
+        edge_view[1] = h*width+w
+        edge_view[2] = (h-1)*width+w
+        edges_view[cnt] = edge_view
+        cnt = cnt + 1
 
-  height = diff3.shape[0]
-  width = diff3.shape[1]
-  for h in xrange(height):
-    for w in xrange(width):
-      val = diff3[h, w]
-      edges.append((val, h*width+w, (h+1)*width+w))
+  return edges

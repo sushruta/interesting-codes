@@ -17,4 +17,5 @@ pyzmq
 scipy
 six
 tornado
+theano
 wsgiref
