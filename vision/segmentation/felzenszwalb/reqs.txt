@@ -16,6 +16,6 @@ pytz
 pyzmq
 scipy
 six
-tornado
 theano
+tornado
 wsgiref
