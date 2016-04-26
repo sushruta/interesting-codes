@@ -63,4 +63,4 @@ target/
 
 #C++ stuff as well
 *.o
-*/a.out
+a.out
