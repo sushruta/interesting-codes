@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -6,7 +5,6 @@
 
 using namespace cv;
 using namespace std;
-
 
 // There is no error checking at the moment
 // One should ideally check if the dst is
@@ -32,24 +30,24 @@ Mat rgb2luv(Mat& src) {
   Mat dst(src.size(), src.type());
 
   float X, Y, Z;
-  float L, u, v
-  float up, yp;
-  float un = 0.19793943; float yn = 0.46831096;
+  float L, u, v;
+  float up, vp;
+  float un = 0.19793943; float vn = 0.46831096;
 
   float mx[3] = {0.412453, 0.357580, 0.180423};
   float my[3] = {0.212671, 0.715160, 0.072169};
   float mz[3] = {0.019334, 0.119193, 0.950227};
-  int nchannels = src.channels;
+  int nchannels = src.channels();
   for (int row=0; row<src.rows; row++) {
     const float *pSrc = src.ptr<float>(row);
     float *pDst = dst.ptr<float>(row);
 
     for (int col=0; col<src.cols*nchannels; col+=nchannels) {
       X = 0.0f; Y = 0.0f; Z = 0.0f;
-      for (int c=0; c<nchannels; channel++) {
-        X += mx[c] * src[col+c];
-        Y += my[c] * src[col+c];
-        Z += mz[c] * src[col+c];
+      for (int c=0; c<nchannels; c++) {
+        X += mx[c] * pSrc[col+c];
+        Y += my[c] * pSrc[col+c];
+        Z += mz[c] * pSrc[col+c];
       }
 
       if (Y > 0.008856) {
@@ -60,7 +58,7 @@ Mat rgb2luv(Mat& src) {
 
       float denom = X + 15.0f * Y + 3.0f * Z;
       up = 4.0f * X / denom;
-      yp = 9.0f * Y / denom;
+      vp = 9.0f * Y / denom;
 
       u = 13.0f * L * (up - un);
       v = 13.0f * L * (vp - vn);
@@ -150,25 +148,3 @@ void gradientHist(Mat& src, Mat& magnitude, Mat& histogram,
   return;
 }
 
-int main() {
-  Mat img = imread("pic1.jpg");
-  Mat dst, dst2;
-
-  Mat histogram;
-  histogram.create(Size(100, 100), CV_MAKE_TYPE(DataType<float>::type, 20));
-
-  dst = imsmooth(img, 2);
-  dst2 = img / dst;
-  dst2 *= 255.0;
-
-  // now display the image
-  namedWindow("My src Image", WINDOW_AUTOSIZE);
-  namedWindow("My dst Image", WINDOW_AUTOSIZE);
-  namedWindow("My dst2 Image", WINDOW_AUTOSIZE);
-  imshow("My src Image", img);
-  imshow("My dst Image", dst);
-  imshow("My dst2 Image", dst2);
-
-  waitKey();
-  return 0;
-}
